@@ -75,14 +75,32 @@ export const useMap = () => {
 
 export const useBombs = (count: number) => {
     const [bombs, setBombs] = useState<TCellPoint[]>([]);
+    const [flags, setFlags] = useState<TCellPoint[]>([]);
+
     const generateBombsMap = useCallback((map: TCellPoint[], exclude: TCellPoint) => {
         setBombs(getBombsPoints(map, count, exclude));
     }, [count]);
 
+    const handleFlag = useCallback((point: TCellPoint) => {
+        const current = new Set(flags);
+        if (current.has(point)) {
+            current.delete(point);
+        } else {
+            current.add(point);
+        }
+
+        setFlags(Array.from(current));
+    }, [flags]);
+
     return {
         bombs,
         generateBombsMap,
-        reset: () => setBombs([]),
+        reset: () => {
+            setBombs([]);
+            setFlags([]);
+        },
+        setFlag: handleFlag,
+        flags,
     };
 };
 

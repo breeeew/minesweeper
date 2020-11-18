@@ -9,7 +9,7 @@ const width = 32;
 
 export const Cell = React.memo<TCellProps>((props) => {
     const gameState = useContext(GameContext);
-    const {bombs} = useContext(BombsContext) ?? {};
+    const {bombs, setFlag, flags} = useContext(BombsContext) ?? {};
     const mapState = useContext(MapContext);
 
     const {gameOver, setGameOver} = gameState ?? {};
@@ -17,6 +17,10 @@ export const Cell = React.memo<TCellProps>((props) => {
     const hasBomb = useMemo(() => bombs?.some(
         point => point === props.point
     ), [bombs, props.point]);
+
+    const hasFlag = useMemo(() => flags?.some(
+        point => point === props.point
+    ), [flags, props.point]);
 
     const isDiscovered = useMemo(() => mapState?.discovered.some(
         point => point === props.point
@@ -40,11 +44,17 @@ export const Cell = React.memo<TCellProps>((props) => {
         props.onClick(props.point);
     }, [hasBomb, bombs, gameOver, props, setGameOver, mapState]);
 
+    const onRightClick = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setFlag?.(props.point);
+    }, [props.point, setFlag]);
+
     const [left, top] = props.point.split(':');
 
     return (
         <div
             onClick={onClick}
+            onContextMenu={onRightClick}
             className={cn(styles.Cell, {
                 [styles.Discovered]: isDiscovered,
                 [styles.BombIsNear]: isDiscovered && cellCount,
@@ -54,8 +64,9 @@ export const Cell = React.memo<TCellProps>((props) => {
                 top: `${Number(top) * height}px`,
             }}
         >
-            {gameOver && hasBomb && '💣'}
-            {!hasBomb && isDiscovered && !!cellCount && `${cellCount}`}
+            {gameOver && hasBomb && !hasFlag && '💣'}
+            {!hasFlag && !hasBomb && isDiscovered && !!cellCount && `${cellCount}`}
+            {hasFlag && '👍'}
         </div>
     );
 });
